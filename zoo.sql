@@ -80,4 +80,17 @@
   FROM world
   WHERE capital  LIKE concat (name, '%') AND capital > name ;
 
--- 2
+  /* 1.15 Show the name and the extension where the capital is an extension of name of the country. */
+  SELECT  capital, name
+  FROM world
+  WHERE capital LIKE CONCAT(name, '%')
+  AND capital != name;
+
+-- 2 SELECT from WORLD
+  /* 2.1 Introduction */
+  SELECT name, continent, population FROM world
+
+  -- 2.2 Large Countries
+  /* Show the name for the countries that have a population of at least 200 million. 200 million is 200000000, there are eight zeros. */
+  
+  
