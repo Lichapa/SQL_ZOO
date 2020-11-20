@@ -180,3 +180,5 @@
   name  LIKE '%o%' AND 
   name  LIKE '%u%' AND 
   name NOT LIKE '% %'
+
+--3 SELECT FROM nobel
