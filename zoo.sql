@@ -297,7 +297,7 @@
   SELECT name FROM world
   WHERE population >
      (SELECT population FROM world
-      WHERE name='Russia')
+      WHERE name='Russia');
 
   -- 4.2 Richer than UK
   /* Show the countries in Europe with a per capita GDP greater than 'United Kingdom'. */
@@ -306,4 +306,142 @@
   WHERE continent = 'Europe' AND GDP/population > 
         (SELECT gdp/population
          FROM world
-         WHERE name = 'united Kingdom')
+         WHERE name = 'united Kingdom');
+
+  -- 4.3 Neightbours of Argentina and Austalia
+  /* List the name and continent of countries in the continents containing either 
+    Argentina or Australia. Order by name of the country.*/
+
+  SELECT name, continent
+  FROM world
+  WHERE continent IN 
+     (SELECT continent FROM world
+      WHERE name IN ('argentina', 'Australia'))
+  ORDER BY name ;
+
+  -- 4.4 Between Canada and Poland
+  /* Which country has a population that is more than Canada but less than Poland? 
+  Show the name and the population. */
+
+  SELECT name, population
+  FROM  world
+  WHERE population > (SELECT population FROM world 
+           WHERE name = 'canada')
+  AND population < (SELECT population FROM world
+           WHERE name = 'poland');
+
+  -- 4.5 Percentages of Germany
+  /* Show the name and the population of each country in Europe. 
+  Show the population as a percentage of the population of Germany. */
+
+  SELECT name, 
+    CONCAT(ROUND(population/
+          (SELECT population 
+          FROM world
+          WHERE name = 'germany') * 100), '%')
+  FROM world
+  WHERE continent = 'Europe';
+
+  -- 4.6 Bigger than every country in Europe
+  /* Which countries have a GDP greater than every country in Europe? 
+  [Give the name only.] (Some countries may have NULL gdp values) */
+
+  SELECT name
+  FROM world
+  WHERE gdp > ALL(SELECT gdp 
+            FROM world
+            WHERE continent = 'Europe' AND gdp >0)
+
+  -- 4.7 Largest in each continent
+  /* Find the largest country (by area) in each continent, show the continent, the name and the area:  */
+
+  SELECT continent, name, AREA FROM world x
+  WHERE area >= ALL (SELECT area FROM world y
+                WHERE y.continent=x.continent
+                AND area>0)
+
+  -- 4.8 First country of each continent (alphabetically)
+  /*List each continent and the name of the country that comes first alphabetically.*/
+
+  SELECT continent, name
+  FROM world a
+  WHERE name <= ALL(SELECT name FROM world b
+               WHERE a.continent = b.continent)
+
+  -- 4.9 
+  /* Find the continents where all countries have a population <= 25000000. 
+  Then find the names of the countries 
+  associated with these continents. Show name, continent and population. */
+
+  SELECT name,continent, population
+  FROM world a
+  WHERE 25000000 > ALL(SELECT population
+                  FROM world b
+                  WHERE a.continent = b.continent)
+
+  -- 4.10 
+  /* Some countries have populations more than three times that of any of their 
+  neighbours (in the same continent). Give the countries and continents.*/
+  SELECT a.name, a.continent
+  FROM world a
+  WHERE a.population > ALL(SELECT b.population * 3
+                    FROM world b
+                    WHERE a.continent = b.continent
+                    AND a.name != b.name )
+
+-- 5 SUM AND COUNT
+  -- 5.1 TOTAL WORLD POPULATION
+  /* Show the total population of the world. */
+  SELECT SUM(population)
+  FROM world;
+
+  -- 5.2 List of Continents
+  /* List all the continents - just once each.  */
+  SELECT DISTINCT(continent)
+  FROM world;
+
+  -- 5.3 GDP of Africa
+  /* Give the total GDP of Africa */
+  SELECT SUM(gdp)
+  FROM world
+  WHERE continent = 'africa';
+
+  -- 5.4 Count the big countries
+  /* How many countries have an area of at least 1000000 */
+  SELECT COUNT(name)
+  FROM world
+  WHERE area > 1000000;
+
+  -- 5.5 Baltic States population
+  /* What is the total population of ('Estonia', 'Latvia', 'Lithuania') */
+  SELECT SUM(population)
+  FROM world
+  WHERE name IN ('Estonia', 'Latvia', 'Lithuania'); 
+
+  /* Using Using GROUP BY and HAVING */
+
+  -- 5.6 Counting the countries of each continent
+  /* For each continent show the continent and number of countries. */
+
+  SELECT continent, COUNT(name)
+  FROM world
+  GROUP BY continent;
+
+  -- 5.7 Counting big countries in each continent
+  /* For each continent show the continent and number of 
+  countries with populations of at least 10 million. */
+
+  SELECT continent, COUNT(name)
+  FROM world
+  WHERE population > 10000000
+  GROUP BY continent
+
+  -- 5.8 Counting big continents
+  /* List the continents that have a total population of at least 100 million. */
+
+  SELECT continent
+  FROM world
+  GROUP BY continent
+  HAVING SUM(population) >= 100000000
+
+-- 6
