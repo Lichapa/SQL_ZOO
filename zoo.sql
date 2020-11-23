@@ -444,4 +444,49 @@
   GROUP BY continent
   HAVING SUM(population) >= 100000000
 
--- 6
+-- 6 JOIN
+  -- 6.1
+  /* Modify it to show the matchid and player name for all goals 
+  scored by Germany. To identify German players, check for: teamid = 'GER' */
+
+  SELECT matchid, player FROM goal 
+  WHERE teamID = 'GER'
+
+  -- 6.2 
+  /* Show id, stadium, team1, team2 for just game 1012 */
+
+  SELECT id,stadium,team1,team2
+  FROM game
+  WHERE id= 1012
+
+  -- 6.3
+  /* Modify it to show the player, teamid, 
+  stadium and mdate for every German goal.*/
+
+  SELECT player,teamid, stadium, mdate
+  FROM game JOIN goal ON (id=matchid)
+  WHERE teamid = 'ger'
+
+  -- 6.4
+  /* Show the team1, team2 and player for every 
+  goal scored by a player called Mario player LIKE 'Mario%' */
+
+  SELECT team1, team2, player
+  FROM game JOIN goal ON (id= matchid)
+  WHERE player LIKE 'mario%'
+
+  -- 6.5
+  /* Show player, teamid, coach, gtime for all goals
+   scored in the first 10 minutes gtime<=10 */
+
+  SELECT player, teamid, coach, gtime
+  FROM goal JOIN eteam ON (teamid = id)
+  WHERE gtime<=10
+
+  -- 6.6
+  /* List the dates of the matches and the name of the team in which 
+  'Fernando Santos' was the team1 coach. */
+
+  SELECT mdate, teamname
+  FROM game JOIN eteam ON (team1 = eteam.id)
+  WHERE coach = 'fernando santos'
