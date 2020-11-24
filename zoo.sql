@@ -450,14 +450,14 @@
   scored by Germany. To identify German players, check for: teamid = 'GER' */
 
   SELECT matchid, player FROM goal 
-  WHERE teamID = 'GER'
+  WHERE teamID = 'GER';
 
   -- 6.2 
   /* Show id, stadium, team1, team2 for just game 1012 */
 
   SELECT id,stadium,team1,team2
   FROM game
-  WHERE id= 1012
+  WHERE id= 1012;
 
   -- 6.3
   /* Modify it to show the player, teamid, 
@@ -465,7 +465,7 @@
 
   SELECT player,teamid, stadium, mdate
   FROM game JOIN goal ON (id=matchid)
-  WHERE teamid = 'ger'
+  WHERE teamid = 'ger';
 
   -- 6.4
   /* Show the team1, team2 and player for every 
@@ -473,7 +473,7 @@
 
   SELECT team1, team2, player
   FROM game JOIN goal ON (id= matchid)
-  WHERE player LIKE 'mario%'
+  WHERE player LIKE 'mario%';
 
   -- 6.5
   /* Show player, teamid, coach, gtime for all goals
@@ -489,4 +489,104 @@
 
   SELECT mdate, teamname
   FROM game JOIN eteam ON (team1 = eteam.id)
-  WHERE coach = 'fernando santos'
+  WHERE coach = 'fernando santos';
+
+  -- 6.7
+  /* List the player for every goal scored in a game where the 
+  stadium was 'National Stadium, Warsaw'*/
+
+  SELECT player 
+  FROM goal JOIN game ON (goal.matchid = game.id)
+  WHERE stadium = 'National Stadium, Warsaw';
+
+  -- 6.8
+  /* Instead show the name of all players who scored a goal against Germany. */
+
+  SELECT DISTINCT(player)
+  FROM game JOIN goal ON matchid = id 
+    WHERE goal.teamid != 'GER'
+    AND (game.team1 = 'GER' OR game.team2 = 'GER');
+
+  -- 6.9 
+  /* Show teamname and the total number of goals scored. */
+  
+  SELECT teamname, COUNT(teamid) AS Number_of_Goals
+  FROM eteam JOIN goal ON id=teamid
+  GROUP BY teamname;
+
+  -- 6.10
+  /* Show the stadium and the number of goals scored in each stadium. */
+  
+  SELECT stadium, COUNT(matchid)
+  FROM game
+  JOIN goal ON (matchid = game.id)
+  GROUP BY Stadium
+
+  -- 6.11 
+  /* For every match involving 'POL', show the matchid, 
+  date and the number of goals scored. */
+
+  SELECT DISTINCT(matchid), mdate, COUNT(matchid) AS Goals
+  FROM game JOIN goal ON (matchid = id) 
+  WHERE (team1 = 'POL' OR team2 = 'POL')
+  GROUP BY matchid, mdate
+
+  -- 6.12
+  /* For every match where 'GER' scored, show matchid, 
+  match date and the number of goals scored by 'GER' */
+
+  SELECT DISTINCT(matchid), mdate, COUNT(matchid)
+  FROM game JOIN goal ON (matchid = id)
+  WHERE (team1 = 'GER' OR team2 = 'GER') AND teamid = 'GER'
+  GROUP BY matchid, mdate
+
+  -- 6.12 FROM (https://github.com/jisaw/sqlzoo-solutions/blob/master/join.sql)
+
+  /* List every match with the goals scored by each team as shown. This will use "CASE WHEN" 
+  which has not been explained in any previous exercises.
+  mdate	team1	score1	team2	score2
+  1 July 2012	ESP	4	ITA	0
+  10 June 2012	ESP	1	ITA	1
+  10 June 2012	IRL	1	CRO	3
+  ...
+  Notice in the query given every goal is listed. If it was a team1 goal then a 1 appears in score1, otherwise there is a 0.
+  You could SUM this column to get a count of the goals scored by team1. Sort your result by mdate, matchid, team1 and team2.
+  */
+
+  SELECT mdate,
+       team1,
+       SUM(CASE WHEN teamid = team1 THEN 1 ELSE 0 END) AS score1,
+       team2,
+       SUM(CASE WHEN teamid = team2 THEN 1 ELSE 0 END) AS score2 FROM
+    game LEFT JOIN goal ON (id = matchid)
+    GROUP BY mdate,team1,team2
+    ORDER BY mdate, matchid, team1, team2
+
+-- 7 More JOIN Operations
+  -- 7.1 1962 movies
+  /* List the films where the yr is 1962 [Show id, title] */
+  SELECT id, title
+  FROM movie
+  WHERE yr=1962;
+
+  -- 7.2 When was Citizen Kane released?
+  /* Give year of 'Citizen Kane'. */
+  SELECT yr
+  FROM movie
+  WHERE title = 'Citizen Kane';
+
+  -- 7.3 Star Trek movies
+  /* List all of the Star Trek movies, include the id, title and yr 
+  (all of these movies include the words Star Trek in the title). Order results by year. */
+
+  SELECT id, title, yr
+  FROM movie
+  WHERE title LIKE 'star trek%'
+  ORDER BY yr;
+
+  -- 7.4 id for actor Glenn Close
+  /* What id number does the actor 'Glenn Close' have?  */
+
+  SELECT ID
+  FROM actor
+  WHERE name = 'Glenn Close'
