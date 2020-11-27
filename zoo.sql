@@ -777,3 +777,189 @@
             ELSE 'None'
        END
     FROM teacher
+
+-- 8+ NSS Tutorial
+  -- 8+.1 Check out one row
+    /* Show the the percentage who STRONGLY AGREE */
+
+    SELECT A_STRONGLY_AGREE
+    FROM nss
+    WHERE question='Q01'
+    AND institution='Edinburgh Napier University'
+    AND subject='(8) Computer Science'
+
+  -- 8+.2 Calculate how many agree or strongly agree
+    /* Show the institution and subject where the score is at least 100 for question 15. */
+   
+    SELECT institution, subject
+    FROM nss
+    WHERE question='Q15'
+       AND score >= 100;
+
+  -- 8+.3 Unhappy Computer Students
+    /* Show the institution and score where the score for '(8) Computer Science' 
+    is less than 50 for question 'Q15' */
+
+    SELECT institution,score
+    FROM nss
+    WHERE question='Q15'
+        AND subject='(8) Computer Science'
+        AND score < 50;
+
+  -- 8+.4 More Computing or Creative Students?
+    /* Show the subject and total number of students who responded to question 22 
+    for each of the subjects '(8) Computer Science' and '(H) Creative Arts and Design'.  */
+
+    SELECT Subject, SUM(response)
+    FROM nss
+    WHERE question='Q22'
+    AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design')
+    GROUP BY subject;
+
+  -- 8+.5 Strongly Agree Numbers
+    /* Show the subject and total number of students who A_STRONGLY_AGREE to question 22 
+    for each of the subjects '(8) Computer Science' and '(H) Creative Arts and Design'.  */
+
+    SELECT Subject, SUM(A_STRONGLY_AGREE*response/100)
+    FROM nss
+    WHERE question='Q22'
+    AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design')
+    GROUP BY subject
+
+  -- 8+.6 Strongly Agree, Percentage
+    /* Show the percentage of students who A_STRONGLY_AGREE to question 22 for the subject 
+    '(8) Computer Science' show the same figure for the subject '(H) Creative Arts and Design'.  */
+
+    SELECT Subject, ROUND(SUM(A_STRONGLY_AGREE*response/100)/ SUM(response)*100,0)
+    FROM nss
+    WHERE question='Q22'
+          AND subject IN ('(8) Computer Science', '(H) Creative Arts and Design')
+    GROUP BY subject
+
+  -- 8+.7 Scores for Institutions in Manchester
+    /* Show the average scores for question 'Q22' for each institution that include 
+    'Manchester' in the name. */
+
+    SELECT institution,
+    ROUND(SUM(score*response/100)/ SUM(response)*100,0)
+    FROM nss
+    WHERE question='Q22'
+    AND (institution LIKE '%Manchester%')
+    GROUP BY institution
+    ORDER BY institution
+
+  -- 8+.7 Number of Computing Students in Manchester
+    /* Show the institution, the total sample size and the number of 
+    computing students for institutions in Manchester for 'Q01'.  */ 
+
+    SELECT institution, SUM(sample), 
+               (SELECT sample FROM nss y
+               WHERE subject='(8) Computer Science'
+               AND x.institution = y.institution
+               AND question='Q01') AS comp
+    FROM nss x
+    WHERE question='Q01'
+    AND (institution LIKE '%Manchester%')
+    GROUP BY institution;
+
+-- 9 SELF JOIN
+  -- 9.1 
+    /* How many stops are in the database.  */
+    SELECT COUNT(id)
+    FROM stops
+
+  -- 9.2 
+    /* Find the id value for the stop 'Craiglockhart'  */
+
+    SELECT id
+    FROM stops 
+    WHERE name = 'Craiglockhart'
+
+  -- 9.3 
+    /* Give the id and the name for the stops on the '4' 'LRT' service.  */
+
+    SELECT id, name
+    FROM stops JOIN route
+    ON id=stop
+    WHERE num=4
+    AND company = 'LRT'
+    order by pos
+
+  -- 9.4 Routes and stops
+    /* The query shown gives the number of routes that visit either London Road (149) 
+    or Craiglockhart (53). Run the query and notice the two services that link 
+    these stops have a count of 2. Add a HAVING clause to restrict the output to these two routes.  */
+
+    SELECT company, num, COUNT(*)
+    FROM route WHERE stop=149 OR stop=53
+    GROUP BY company, num
+    HAVING COUNT(*) = 2
+
+  -- 9.5 
+    /* Execute the self join shown and observe that b.stop gives all the places you can get 
+    to from Craiglockhart, without changing routes. Change the query so that it shows the 
+    services from Craiglockhart to London Road. */
+    SELECT a.company, a.num, a.stop, b.stop
+    FROM route a JOIN route b ON
+        (a.company=b.company AND a.num=b.num)
+    WHERE a.stop=53 AND b.stop=149
+
+  -- 9.6 
+    /* The query shown is similar to the previous one, however by joining two copies of 
+    the stops table we can refer to stops by name rather than by number. 
+    Change the query so that the services between 'Craiglockhart' and 'London Road' are shown. */
+
+    SELECT a.company, a.num, stopa.name, stopb.name
+    FROM route a JOIN route b ON
+        (a.company=b.company AND a.num=b.num)
+        JOIN stops stopa ON (a.stop=stopa.id)
+        JOIN stops stopb ON (b.stop=stopb.id)
+    WHERE stopa.name='Craiglockhart' AND stopb.name= 'London Road'
+
+  -- 9.7
+    /* Give a list of all the services which connect stops 115 and 137 ('Haymarket' and 'Leith')  */
+    SELECT DISTINCT a.company, a.num
+    FROM route a JOIN route b ON
+        (a.company=b.company AND a.num=b.num)
+    WHERE a.stop=115 AND b.stop=137;
+
+  -- 9.8
+    /* Give a list of the services which connect the stops 'Craiglockhart' and 'Tollcross'  */
+    SELECT DISTINCT a.company, a.num
+    FROM route a JOIN route b ON
+        (a.company=b.company AND a.num=b.num)
+        JOIN stops stopa ON (a.stop=stopa.id)
+        JOIN stops stopb ON (b.stop=stopb.id)
+    WHERE stopa.name='Craiglockhart' AND stopb.name= 'Tollcross'
+
+  -- 9.9
+    /* Give a distinct list of the stops which may be reached from 'Craiglockhart' by taking one bus, 
+    including 'Craiglockhart' itself, offered by the LRT company. Include the company and 
+    bus no. of the relevant services. */
+
+    SELECT DISTINCT stopa.name, a.company, a.num
+    FROM route a
+      JOIN route b ON (a.num=b.num AND a.company=b.company)
+      JOIN stops stopa ON (a.stop=stopa.id)
+      JOIN stops stopb ON (b.stop=stopb.id)
+    WHERE stopb.name = 'Craiglockhart'
+    ORDER BY a.num,a.pos;
+
+  -- 9.10
+    /*  Find the routes involving two buses that can go from Craiglockhart to Lochend.
+      Show the bus no. and company for the first bus, the name of the stop for the transfer,
+      and the bus no. and company for the second bus. */
+
+    SELECT r1.num, r1.company, name, r3.num, r3.company FROM route r1
+    JOIN route r2 ON r1.num=r2.num AND r1.company=r2.company
+    AND r1.stop=(SELECT id FROM stops WHERE name='Craiglockhart')
+    JOIN route r3 ON r2.stop=r3.stop
+    JOIN route r4 ON r3.num=r4.num AND r3.company=r4.company
+    AND r4.stop=(SELECT id FROM stops WHERE name='Lochend')
+    JOIN stops ON r2.stop=id
+    ORDER BY r1.num, name, r3.num
+
+    --Credit for No 9.10: Guilherme Recordon
+    --https://github.com/guirecordon/sql_zoo/blob/master/sql_zoo_solutions/self_JOIN.sql
+
+  
